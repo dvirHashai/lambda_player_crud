@@ -1,0 +1,23 @@
+POST  https://hd93o4lw35.execute-api.eu-central-1.amazonaws.com/dev/players
+{
+	"name": "dvir",
+	"isAvailable": true
+}
+
+###
+
+GET  https://hd93o4lw35.execute-api.eu-central-1.amazonaws.com/dev/players
+###
+GET  https://hd93o4lw35.execute-api.eu-central-1.amazonaws.com/dev/players/dvir
+###
+PUT  https://hd93o4lw35.execute-api.eu-central-1.amazonaws.com/dev/players/dvir
+{
+  "isAvailable":false
+}
+###
+DELETE  https://hd93o4lw35.execute-api.eu-central-1.amazonaws.com/dev/players/Fluffykins
+
+
+
+
+
