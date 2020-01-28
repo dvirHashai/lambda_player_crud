@@ -185,14 +185,14 @@ module.exports = {
 
         let deleteParams = {
             TableName: process.env.DYNAMODB_PLAYERS_TABLE,
-            key: {
+            Key: {
                 name: event.queryStringParameters.name
             }
         }
         let deleteResult = {}
         try {
             let dynamodb = new AWS.DynamoDB.DocumentClient();
-            deleteResult = dynamodb.delete(deleteParams).promise()
+            deleteResult = await dynamodb.delete(deleteParams).promise()
         } catch (deleteError) {
             console.log('There aws a problem getting the kitten')
             console.log('deleteParams', deleteParams)
