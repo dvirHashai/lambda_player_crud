@@ -52,8 +52,8 @@ module.exports = {
         console.log("list -> start with event:{} and context: {}", event, context);
         let scanParams = {
             TableName: process.env.DYNAMODB_PLAYERS_TABLE,
-            FilterExpression : 'isAvailable = :yes',
-            ExpressionAttributeValues : {':yes' : true}
+            FilterExpression: 'isAvailable = :yes',
+            ExpressionAttributeValues: {':yes': true}
         };
         console.log('scanParams', scanParams);
         let scanResult = {};
@@ -68,7 +68,7 @@ module.exports = {
                 statusCode: 500
             }
         }
-        console.log("scanResult",scanResult);
+        console.log("scanResult", scanResult);
         if (scanResult.Items === null ||
             !Array.isArray(scanResult.Items) ||
             scanResult.Items.length === 0) {
@@ -89,7 +89,7 @@ module.exports = {
     get: async (event, context) => {
         console.log("get -> start with event:{} and context: {}", event, context);
         console.log("event", event);
-        if (event.queryStringParameters.name === undefined){
+        if (event.queryStringParameters.name === undefined) {
             return {
                 statusCode: 404,
                 massage: "Invalid Input"
@@ -132,38 +132,41 @@ module.exports = {
     },
     update: async (event, context) => {
         console.log("update -> start with event:{} and context: {}", event, context);
-        /*let bodyObj = {};
+        console.log("event.queryStringParameters", event.queryStringParameters.name)
+        console.log("event.body", event.body)
+        let bodyObj = {}
         try {
-            bodyObj = JSON.parse(event);
+            bodyObj = JSON.parse(event.body)
         } catch (jsonError) {
-            console.log('There was an error parsing the body', jsonError);
+            console.log('There was an error parsing the body', jsonError)
             return {
                 statusCode: 400
             }
-        }*/
-        /*if (typeof event.isAvailable === 'undefined') {
-            console.log('Missing parameters');
+        }
+        if (event.queryStringParameters.name === undefined || bodyObj.isAvailable === undefined) {
             return {
-                statusCode: 400
+                statusCode: 400,
+                massage: "Invalid Input"
             }
-        }*/
-        console.log("event.pathParameters",event.queryStringParameters.name)
+        }
+        let isAvailable = bodyObj.isAvailable
         let updateParams = {
             TableName: process.env.DYNAMODB_PLAYERS_TABLE,
-            key: {
-                name: event.name
+            Key: {
+                name: event.queryStringParameters.name
             },
-            updateExpresion: 'set #isAvailable = :isAvailable',
-            ExpressionAttributeName: {'#isAvailable': 'isAvailable'},
-            ExpressionAttributeValues: {':isAvailable': event.isAvailable}
+            UpdateExpression: "SET isAvailable = :isAvailable",
+            // ExpressionAttributeName: {'#isAvailable': 'isAvailable'},
+            ExpressionAttributeValues: {':isAvailable': isAvailable },
+            ReturnValues: 'UPDATED_NEW'
         };
-        let response ={};
+        let response = {};
         console.log("update -> updateParams : ", updateParams);
         try {
             let dynamodb = new AWS.DynamoDB.DocumentClient();
-            response = dynamodb.update(updateParams).promise()
+            response = await dynamodb.update(updateParams).promise()
         } catch (updateError) {
-            console.log('There aws a problem getting the kitten');
+            console.log('There aws a problem update the player');
             console.log('updateParams', updateParams);
             console.log('updateError', updateError);
             return {
@@ -171,7 +174,7 @@ module.exports = {
             }
         }
 
-            console.log(response);
+        console.log("response", response);
         return {
             statusCode: 200
         }
@@ -183,7 +186,7 @@ module.exports = {
         let deleteParams = {
             TableName: process.env.DYNAMODB_PLAYERS_TABLE,
             key: {
-                name: event.pathParameters.name
+                name: event.queryStringParameters.name
             }
         }
         let deleteResult = {}
@@ -198,6 +201,7 @@ module.exports = {
                 statusCode: 500
             }
         }
+        console.log('deleteResult', deleteResult)
         return {
             statusCode: 200
         }
