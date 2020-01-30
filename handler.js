@@ -14,8 +14,9 @@ module.exports = {
                 statusCode: 400
             }
         }
-        if (typeof bodyObj.name === 'undefined' ||
-            typeof bodyObj.isAvailable === 'undefined') {
+        console.log("bodyObj: ",bodyObj);
+        if (typeof bodyObj.id === 'undefined' ||
+            typeof bodyObj.name === 'undefined') {
             console.log('Missing parameters')
             return {
                 statusCode: 400
@@ -24,8 +25,8 @@ module.exports = {
         let putParams = {
             TableName: process.env.DYNAMODB_PLAYERS_TABLE,
             Item: {
+                id: bodyObj.id,
                 name: bodyObj.name,
-                isAvailable: bodyObj.isAvailable,
             }
         }
         console.log('putParams', putParams)
@@ -44,7 +45,7 @@ module.exports = {
 
         }
         return {
-            statusCode: 201
+            statusCode: 200
         }
 
     },
@@ -52,8 +53,8 @@ module.exports = {
         console.log("list -> start with event:{} and context: {}", event, context);
         let scanParams = {
             TableName: process.env.DYNAMODB_PLAYERS_TABLE,
-            FilterExpression: 'isAvailable = :yes',
-            ExpressionAttributeValues: {':yes': true}
+            // FilterExpression: 'isAvailable = :yes',
+            // ExpressionAttributeValues: {':yes': true}
         };
         console.log('scanParams', scanParams);
         let scanResult = {};
@@ -80,8 +81,8 @@ module.exports = {
             statusCode: 200,
             body: JSON.stringify(scanResult.Items.map(player => {
                 return {
-                    name: player.name,
-                    isAvailable: player.isAvailable
+                    id: player.id,
+                    name: player.name
                 }
             }))
         }
@@ -89,17 +90,17 @@ module.exports = {
     get: async (event, context) => {
         console.log("get -> start with event:{} and context: {}", event, context);
         console.log("event", event);
-        if (event.queryStringParameters.name === undefined) {
+        if (event.queryStringParameters.id === undefined) {
             return {
                 statusCode: 404,
                 massage: "Invalid Input"
             }
         }
-        let name = "dvir";
+        let id = event.queryStringParameters.id;
         let getParams = {
             TableName: process.env.DYNAMODB_PLAYERS_TABLE,
             Key: {
-                'name': name
+                'id': id
             },
 
         };
@@ -125,14 +126,14 @@ module.exports = {
         return {
             statusCode: 200,
             body: JSON.stringify({
-                name: getResult.Item.name,
-                isAvailable: getResult.Item.isAvailable
+                id: getResult.Item.id,
+                name: getResult.Item.name
             })
         }
     },
     update: async (event, context) => {
         console.log("update -> start with event:{} and context: {}", event, context);
-        console.log("event.queryStringParameters", event.queryStringParameters.name)
+        console.log("event.queryStringParameters", event.queryStringParameters.id)
         console.log("event.body", event.body)
         let bodyObj = {}
         try {
@@ -143,21 +144,21 @@ module.exports = {
                 statusCode: 400
             }
         }
-        if (event.queryStringParameters.name === undefined || bodyObj.isAvailable === undefined) {
+        if (event.queryStringParameters.id === undefined || bodyObj.name === undefined) {
             return {
                 statusCode: 400,
                 massage: "Invalid Input"
             }
         }
-        let isAvailable = bodyObj.isAvailable
+        let name = bodyObj.name
         let updateParams = {
             TableName: process.env.DYNAMODB_PLAYERS_TABLE,
             Key: {
-                name: event.queryStringParameters.name
+                id: event.queryStringParameters.id
             },
-            UpdateExpression: "SET isAvailable = :isAvailable",
-            // ExpressionAttributeName: {'#isAvailable': 'isAvailable'},
-            ExpressionAttributeValues: {':isAvailable': isAvailable },
+            UpdateExpression: "SET #name = :name",
+            // ExpressionAttributeName: {'#name': 'name'},
+            ExpressionAttributeValues: {':name': name },
             ReturnValues: 'UPDATED_NEW'
         };
         let response = {};
@@ -186,7 +187,7 @@ module.exports = {
         let deleteParams = {
             TableName: process.env.DYNAMODB_PLAYERS_TABLE,
             Key: {
-                name: event.queryStringParameters.name
+                id: event.queryStringParameters.id
             }
         }
         let deleteResult = {}

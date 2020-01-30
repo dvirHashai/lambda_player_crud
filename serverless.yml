@@ -158,12 +158,16 @@ resources:
       Properties:
         TableName: ${self:service}-nerf-${opt:stage}
         AttributeDefinitions:
-          - AttributeName: name
+          - AttributeName: id
             AttributeType: S
         KeySchema:
-          - AttributeName: name
+          - AttributeName: id
             KeyType: HASH
         BillingMode: PAY_PER_REQUEST
+#    nerfGame:
+#      Type: AWS::ApiGateway::RestApi
+#      Properties:
+#        Name: nerfGame
 #    NewResource:
 #      Type: AWS::S3::Bucket
 #      Properties:
