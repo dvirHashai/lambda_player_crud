@@ -93,21 +93,21 @@ functions:
     handler: handler.get
     events:
       - http:
-          path: /players/{name}
+          path: /players/{playerId}
           method: get
 
   update:
     handler: handler.update
     events:
       - http:
-          path: /players/{name}
+          path: /players/{playerId}
           method: put
 
   delete:
     handler: handler.delete
     events:
       - http:
-          path: /players/{name}
+          path: /players/{playerId}
           method: delete
 
 #    The following are a few example events you can configure
@@ -158,10 +158,10 @@ resources:
       Properties:
         TableName: ${self:service}-nerf-${opt:stage}
         AttributeDefinitions:
-          - AttributeName: id
+          - AttributeName: playerId
             AttributeType: S
         KeySchema:
-          - AttributeName: id
+          - AttributeName: playerId
             KeyType: HASH
         BillingMode: PAY_PER_REQUEST
 #    nerfGame:

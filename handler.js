@@ -1,6 +1,8 @@
 'use strict';
 
-const AWS = require('aws-sdk')
+const AWS = require('aws-sdk');
+const uuid = require('uuid-random');
+
 
 module.exports = {
     create: async (event, context) => {
@@ -14,9 +16,9 @@ module.exports = {
                 statusCode: 400
             }
         }
-        console.log("bodyObj: ",bodyObj);
-        if (typeof bodyObj.id === 'undefined' ||
-            typeof bodyObj.name === 'undefined') {
+        console.log("bodyObj: ", bodyObj);
+        if (typeof bodyObj.name === 'undefined' ||
+            typeof bodyObj.tokenId === 'undefined') {
             console.log('Missing parameters')
             return {
                 statusCode: 400
@@ -25,7 +27,8 @@ module.exports = {
         let putParams = {
             TableName: process.env.DYNAMODB_PLAYERS_TABLE,
             Item: {
-                id: bodyObj.id,
+                playerId: uuid(),
+                tokenId: bodyObj.tokenId,
                 name: bodyObj.name,
             }
         }
@@ -36,7 +39,7 @@ module.exports = {
             let dynamodb = new AWS.DynamoDB.DocumentClient()
             putResult = await dynamodb.put(putParams).promise()
         } catch (putError) {
-            console.log('There aws a problem putting the kitten')
+            console.log('There aws a problem putting the player')
             console.log('putParams', putParams)
             console.log('putError', putError)
             return {
@@ -81,7 +84,8 @@ module.exports = {
             statusCode: 200,
             body: JSON.stringify(scanResult.Items.map(player => {
                 return {
-                    id: player.id,
+                    playerId: player.playerId,
+                    tokenId: player.tokenId,
                     name: player.name
                 }
             }))
@@ -90,17 +94,17 @@ module.exports = {
     get: async (event, context) => {
         console.log("get -> start with event:{} and context: {}", event, context);
         console.log("event", event);
-        if (event.queryStringParameters.id === undefined) {
+        if (event.queryStringParameters.playerId === undefined) {
             return {
                 statusCode: 404,
                 massage: "Invalid Input"
             }
         }
-        let id = event.queryStringParameters.id;
+        let playerId = event.queryStringParameters.playerId;
         let getParams = {
             TableName: process.env.DYNAMODB_PLAYERS_TABLE,
             Key: {
-                'id': id
+                'playerId': playerId
             },
 
         };
@@ -126,14 +130,15 @@ module.exports = {
         return {
             statusCode: 200,
             body: JSON.stringify({
-                id: getResult.Item.id,
+                playerId: getResult.Item.playerId,
+                tokenId: getResult.Item.tokenId,
                 name: getResult.Item.name
             })
         }
     },
     update: async (event, context) => {
         console.log("update -> start with event:{} and context: {}", event, context);
-        console.log("event.queryStringParameters", event.queryStringParameters.id)
+        console.log("event.queryStringParameters", event.queryStringParameters.playerId)
         console.log("event.body", event.body)
         let bodyObj = {}
         try {
@@ -144,21 +149,25 @@ module.exports = {
                 statusCode: 400
             }
         }
-        if (event.queryStringParameters.id === undefined || bodyObj.name === undefined) {
+        if (event.queryStringParameters.playerId === undefined) {
             return {
                 statusCode: 400,
                 massage: "Invalid Input"
             }
         }
-        let name = bodyObj.name
+        let name = bodyObj.name;
+        let tokenId = bodyObj.tokenId;
         let updateParams = {
             TableName: process.env.DYNAMODB_PLAYERS_TABLE,
             Key: {
-                id: event.queryStringParameters.id
+                playerId: event.queryStringParameters.playerId
             },
-            UpdateExpression: "SET #name = :name",
+            UpdateExpression: "SET name = :name, tokenId = :tokenId ",
             // ExpressionAttributeName: {'#name': 'name'},
-            ExpressionAttributeValues: {':name': name },
+            ExpressionAttributeValues: {
+                ':name': name,
+                ':tokenId': tokenId
+            },
             ReturnValues: 'UPDATED_NEW'
         };
         let response = {};
@@ -187,7 +196,7 @@ module.exports = {
         let deleteParams = {
             TableName: process.env.DYNAMODB_PLAYERS_TABLE,
             Key: {
-                id: event.queryStringParameters.id
+                playerId: event.queryStringParameters.playerId
             }
         }
         let deleteResult = {}
