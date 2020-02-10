@@ -25,7 +25,7 @@ provider:
   runtime: nodejs12.x
 
 # you can overwrite defaults here
-#  stage: dev
+  stage: ${opt:stage}
   region: eu-central-1
   # you can define service wide environment variables here
   environment:
